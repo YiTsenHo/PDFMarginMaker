@@ -45,7 +45,7 @@
 
         .upload-label {
             display: block;
-            background: #9dcffb;
+            background: #7bbcf6;
             color: white;
             padding: 12px;
             border-radius: 8px;
@@ -54,7 +54,7 @@
         }
 
         .upload-label:hover {
-            background: #6fb6f5;
+            background: #64adee;
         }
 
         .checkbox-container {
@@ -71,7 +71,7 @@
 
         button {
             margin-top: 15px;
-            background: #9dcffb;
+            background: #b0d5f6;
             color: white;
             border: none;
             padding: 10px 18px;
@@ -82,27 +82,17 @@
         }
 
         button:hover {
-            background: #6fb6f5;
-        }
-
-        .preview-container {
-            margin-top: 15px;
-            display: none;
-        }
-
-        #pdf-preview {
-            width: 100%;
-            height: 250px;
-            border: 1px solid #bde0fe;
-            border-radius: 8px;
-            background: #FFF3F5;
-            overflow: hidden;
+            background: #7bbcf6;
         }
 
         .file-info {
             margin-top: 10px;
             font-size: 14px;
             color: #6caeed;
+        }
+
+        .success {
+            background: #7bbcf6 !important; /* 深藍色 */
         }
 
         #author {
@@ -119,7 +109,7 @@
     <p id="author">⋆˚࿔ Vonni 𝜗𝜚˚⋆</p>
     <div class="container">
         <h1>⊹ ࣪ ˖ PDF Margin Maker ⊹ ࣪ ˖</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
             <label class="upload-label">
                 選擇 PDF
                 <input type="file" name="file" id="file-input" required>
@@ -129,13 +119,8 @@
                 <input type="checkbox" name="use_grid" id="use_grid">
                 <label for="use_grid">使用點狀紙作為背景</label>
             </div>
-            <button type="submit">上傳並處理</button>
+            <button type="submit" id="upload-button">上傳並處理</button>
         </form>
-
-        <div class="preview-container" id="preview-container">
-            <h3 style="color: #6caeed; font-size: 16px; margin-top: 15px;">PDF 預覽</h3>
-            <canvas id="pdf-preview"></canvas>
-        </div>
     </div>
 
     <script>
@@ -143,27 +128,33 @@
             const file = event.target.files[0];
             if (file) {
                 document.getElementById('file-name').innerText = '已選擇: ' + file.name;
-                showPDFPreview(URL.createObjectURL(file));
+                document.getElementById('upload-button').classList.add('success');
             }
         });
 
-        function showPDFPreview(url) {
-            const loadingTask = pdfjsLib.getDocument(url);
-            loadingTask.promise.then(pdf => {
-                pdf.getPage(1).then(page => {
-                    const scale = 1.5;
-                    const viewport = page.getViewport({ scale });
-                    const canvas = document.getElementById('pdf-preview');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    document.getElementById('preview-container').style.display = 'block';
-
-                    const renderContext = { canvasContext: context, viewport: viewport };
-                    page.render(renderContext);
-                });
-            });
-        }
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const fileName = document.getElementById('file-input').files[0].name;
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.responseType = 'blob';
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const url = window.URL.createObjectURL(new Blob([xhr.response]));
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = fileName.replace('.pdf', '') + '_RightMargin.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('上傳失敗');
+                }
+            };
+            xhr.send(formData);
+        });
     </script>
 </body>
 </html>
