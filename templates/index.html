@@ -3,13 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF 增加右側空白</title>
+    <title>PDF Margin Maker</title>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #ddeefa; /* 柔和粉色背景 */
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 5px 12px rgba(42, 77, 120, 0.15);
+            text-align: center;
+            width: 420px;
+            position: relative;
+        }
+
+        h1 {
+            color: #6caeed; /* 可愛粉紅 */
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-label {
+            display: block;
+            background: #9dcffb;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-label:hover {
+            background: #6fb6f5;
+        }
+
+        .checkbox-container {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .checkbox-container input {
+            margin-right: 6px;
+        }
+
+        button {
+            margin-top: 15px;
+            background: #9dcffb;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #6fb6f5;
+        }
+
+        .preview-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        #pdf-preview {
+            width: 100%;
+            height: 250px;
+            border: 1px solid #bde0fe;
+            border-radius: 8px;
+            background: #FFF3F5;
+            overflow: hidden;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #6caeed;
+        }
+
+        #author {
+            position: fixed;
+            margin: 1rem 1.5rem;
+            bottom: 10px;
+            right: 10px;
+            font-size: 15px;
+            color: #6caeed;
+        }
+    </style>
 </head>
 <body>
-    <h1>上傳 PDF，增加右側空白</h1>
-    <form action="/" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">上傳並處理</button>
-    </form>
+    <p id="author">⋆˚࿔ Vonni 𝜗𝜚˚⋆</p>
+    <div class="container">
+        <h1>⊹ ࣪ ˖ PDF Margin Maker ⊹ ࣪ ˖</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label class="upload-label">
+                選擇 PDF
+                <input type="file" name="file" id="file-input" required>
+            </label>
+            <div class="file-info" id="file-name">尚未選擇檔案</div>
+            <div class="checkbox-container">
+                <input type="checkbox" name="use_grid" id="use_grid">
+                <label for="use_grid">使用點狀紙作為背景</label>
+            </div>
+            <button type="submit">上傳並處理</button>
+        </form>
+
+        <div class="preview-container" id="preview-container">
+            <h3 style="color: #6caeed; font-size: 16px; margin-top: 15px;">PDF 預覽</h3>
+            <canvas id="pdf-preview"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('file-name').innerText = '已選擇: ' + file.name;
+                showPDFPreview(URL.createObjectURL(file));
+            }
+        });
+
+        function showPDFPreview(url) {
+            const loadingTask = pdfjsLib.getDocument(url);
+            loadingTask.promise.then(pdf => {
+                pdf.getPage(1).then(page => {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale });
+                    const canvas = document.getElementById('pdf-preview');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    document.getElementById('preview-container').style.display = 'block';
+
+                    const renderContext = { canvasContext: context, viewport: viewport };
+                    page.render(renderContext);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
