@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ddeefa; /* 柔和粉色背景 */
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 5px 12px rgba(42, 77, 120, 0.15);
+    text-align: center;
+    justify-content: center; /* 水平置中 */
+    width: min(420px, 90vw);
+    position: relative;
+    margin: 15px;
+}
+
+h1 {
+    color: #6caeed; /* 可愛粉紅 */
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.upload-label {
+    display: block;
+    background: #7bbcf6;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.upload-label:hover {
+    background: #64adee;
+}
+
+.checkbox-container {
+    display: flex; /* 讓 checkbox 和 label 並排 */
+    align-items: center; /* 垂直對齊 */
+    justify-content: center; /* 水平置中 */
+    gap: 8px; /* 設定 checkbox 和 label 的間距 */
+    font-size: 14px;
+    color: #315778; /* 深藍色字體 */
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%; /* 確保容器寬度占滿父元素 */
+}
+
+/* 自訂 checkbox 樣式 */
+.checkbox-container input[type="checkbox"] {
+    appearance: none; /* 隱藏預設樣式 */
+    width: 16px;
+    height: 16px;
+    border: 1px solid #A2D2FF; /* 淡藍色邊框 */
+    border-radius: 4px; /* 圓角 */
+    background-color: #EAF4FC; /* 背景顏色 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* 當 checkbox 被選取時 */
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: #A2D2FF; /* 填充顏色 */
+    border-color: #75B3FF; /* 深藍色邊框 */
+}
+
+/* 自訂 checkbox 的勾勾 */
+.checkbox-container input[type="checkbox"]::after {
+    content: "✔"; /* Unicode 勾勾符號 */
+    font-size: 12px;
+    color: white;
+    display: none; /* 預設不顯示 */
+}
+
+.checkbox-container input[type="checkbox"]:checked::after {
+    display: block; /* 勾選時顯示 */
+}
+
+button {
+    margin-top: 15px;
+    background: #b0d5f6;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 16px;
+}
+
+button:hover:not(:disabled) {
+    background: #7bbcf6;
+}
+
+/* Disabled button style */
+button:disabled {
+    background: #d1e6f9;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Active button style */
+button.active {
+    background: #7bbcf6 !important; /* 深藍色 */
+}
+
+button:hover.active {
+    background: #64adee !important; /* 深藍色 */
+}
+
+.file-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6caeed;
+}
+
+.success {
+    background: #7bbcf6 !important; /* 深藍色 */
+}
+
+.pdf-preview {
+    margin-top: 20px;
+    border: 1px solid #7bbcf6;
+    border-radius: 8px;
+    overflow: hidden;
+    display: none; /* Hide initially */
+}
+
+.label-container {
+    display: flex; /* 讓內部元素（span 和 dropdown）並排 */
+    align-items: center; /* 讓它們垂直置中對齊 */
+    justify-content: center; /* 水平置中 */
+    gap: 12px; /* 設定標籤與輸入框之間的間距 */
+    margin-top: 12px; /* 調整與上方元素的距離 */
+}
+
+.label {
+    font-size: 15px; /* 字體大小 */
+    font-weight: bold; /* 加粗字體 */
+    color: #7bbcf6; /* 深藍色字體 */
+}
+
+
+.custom-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-input {
+    width: 100px;
+    padding: 5px 5px 2px 5px;
+    font-size: 12px;
+    border: none; /* 先移除所有邊框 */
+    border-bottom: 2px solid #A2D2FF; /* 只保留下方的框線 */
+    border-radius: 5px; /* 移除圓角，讓底線更乾淨 */
+    background-color: #EAF4FC;
+    outline: none;
+    color: #3A3D5C;
+    transition: border-bottom 0.3s ease; /* 讓邊框變化更順暢 */
+    text-align: center;
+    align-items: center;
+}
+
+.dropdown-list {
+    display: none;
+    position: absolute;
+    width: 100%;
+    background: #EAF4FC;
+    border: 1px solid #A2D2FF;
+    border-radius: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 10;
+    font-size: 12px;
+}
+
+.dropdown-list div {
+    padding: 5px;
+    cursor: pointer;
+}
+
+.dropdown-list div:hover {
+    background: #B6E0FF;
+}
+
+#author {
+    position: fixed;
+    margin: 1rem 1.5rem;
+    bottom: 10px;
+    right: 10px;
+    font-size: 15px;
+    color: #6caeed;
+}
+
+/* iOS specific styles */
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+    
+    button, 
+    .upload-label,
+    input[type="number"] {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+}

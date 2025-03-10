@@ -7,7 +7,7 @@ from PIL import Image
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
-FIXED_MARGIN = 200  # 固定增加 200px 邊距
+DEFAULT_MARGIN = 200
 
 # 確保上傳資料夾存在
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -17,10 +17,9 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 # 增加固定邊距和背景的方法
-def add_margin_to_pdf(input_pdf_path, output_pdf_path, use_grid=False):
+def add_margin_to_pdf(input_pdf_path, output_pdf_path, margin_width, use_grid=False):
     doc = fitz.open(input_pdf_path)
     
-    # 讀取 dot_grid.png 並取得原始尺寸
     if use_grid:
         grid_image = Image.open('dot_grid.png')
         grid_width, grid_height = grid_image.size  
@@ -29,41 +28,36 @@ def add_margin_to_pdf(input_pdf_path, output_pdf_path, use_grid=False):
         page = doc.load_page(page_num)
         rect = page.rect
 
-        # 設定新的 MediaBox
-        new_media_rect = fitz.Rect(rect.x0, rect.y0, rect.x1 + FIXED_MARGIN, rect.y1)
+        new_media_rect = fitz.Rect(rect.x0, rect.y0, rect.x1 + margin_width, rect.y1)
         page.set_mediabox(new_media_rect)
         page.set_cropbox(new_media_rect)
 
         if use_grid:
-            # 計算需要填滿的寬高
-            margin_width = FIXED_MARGIN
-            margin_height = int(rect.height)
-
-            # 縮放 dot_grid.png 保持比例
-            scale_factor = margin_width / grid_width
+            # Calculate tiles needed to fill the margin
+            tiles_needed = (margin_width + grid_width - 1) // grid_width
+            scaled_width = margin_width / tiles_needed
+            scale_factor = scaled_width / grid_width
             new_grid_height = int(grid_height * scale_factor)
 
-            # 避免超出高度
-            if new_grid_height > margin_height:
-                scale_factor = margin_height / grid_height
-                new_grid_width = int(grid_width * scale_factor)
-                new_grid_height = margin_height
-            else:
-                new_grid_width = margin_width
-
-            # 調整 dot_grid.png 尺寸
-            grid_image_resized = grid_image.resize((new_grid_width, new_grid_height), Image.LANCZOS)
-
-            # 存成暫存檔案
+            # Resize grid image
+            grid_image_resized = grid_image.resize((int(scaled_width), new_grid_height), Image.LANCZOS)
             temp_image_path = "temp_grid.png"
             grid_image_resized.save(temp_image_path)
 
-            # 平鋪填滿整個區域
+            # Tile horizontally and vertically
             y_offset = rect.y0
             while y_offset < rect.y1:
-                tile_rect = fitz.Rect(rect.x1, y_offset, rect.x1 + new_grid_width, y_offset + new_grid_height)
-                page.insert_image(tile_rect, filename=temp_image_path)
-                y_offset += new_grid_height  
+                x_offset = rect.x1
+                remaining_width = margin_width
+                while remaining_width > 0:
+                    current_width = min(scaled_width, remaining_width)
+                    tile_rect = fitz.Rect(x_offset, y_offset, 
+                                        x_offset + current_width, 
+                                        y_offset + new_grid_height)
+                    page.insert_image(tile_rect, filename=temp_image_path)
+                    x_offset += scaled_width
+                    remaining_width -= scaled_width
+                y_offset += new_grid_height
 
     doc.save(output_pdf_path)
 
@@ -76,7 +70,14 @@ def upload_file():
     if 'file' not in request.files:
         return '沒有檔案', 400
     file = request.files['file']
-    use_grid = 'use_grid' in request.form  # 是否使用背景
+    use_grid = 'use_grid' in request.form
+    
+    try:
+        margin_width = int(request.form.get('margin_width', DEFAULT_MARGIN))
+        if margin_width < 1 or margin_width > 1000:
+            margin_width = DEFAULT_MARGIN
+    except ValueError:
+        margin_width = DEFAULT_MARGIN
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -84,7 +85,7 @@ def upload_file():
         file.save(input_pdf_path)
         
         output_pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], 'output_' + filename)
-        add_margin_to_pdf(input_pdf_path, output_pdf_path, use_grid)
+        add_margin_to_pdf(input_pdf_path, output_pdf_path, margin_width, use_grid)
         
         return send_file(output_pdf_path, as_attachment=True)
 
