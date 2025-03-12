@@ -1,1 +1,1 @@
-`proudly brought to you by ChatGPT and my ctrl+c skill ;p  xoxo`
+`proudly brought to you by ChatGPT and my cmd+c skill ;p  xoxo`
